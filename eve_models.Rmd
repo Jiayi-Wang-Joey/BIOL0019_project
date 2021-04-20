@@ -1,0 +1,1483 @@
+---
+title: "eve stripe 2"
+author: "Jiayi"
+date: "05/11/2020"
+output: html_document
+---
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+---------
+First, we needed to install packages needed for our models.
+```{r}
+library(rsq)
+library(caret)
+library(pheatmap)
+library(broom)
+library(ISLR)
+library(tidyverse)
+library(data.table)
+library(scatterplot3d)
+library(ggplot2)
+library(mcc)
+library(glmulti)
+library(pROC)
+library(mccr)
+library(glmnet)
+```
+
+
+After installing needed packages, I then read the original .vpc file using fread function. The cleaned dataset is named is "nuclei". The threshold of eve being expressed is 0.2. Two quadratic terms hbP2 and bcdP2 were added to the dataset for quadratic models. Note: please change the file directory when you run this code using your own computer. 
+```{r}
+setwd("~/Desktop/BIOL0019")
+ori_nuclei <- fread('atlas.vpc',header = F, sep = "\n", sep2 = ",", skip = 5, quote = F)
+nuclei <- separate(data = ori_nuclei, col = V1, into = c("id","x__1","y__1","z__1","Nx__1","Ny__1","Nz__1","CG31607__1","Cyp310a1__1","D__1","Kr__1","Traf1__1","bcd__1","cad__1","croc__1","eve__1","fkh__1","ftz__1","gt__1","h__1","hb__1","hkb__1","kni__1","knrl__1","noc__1","odd__1","prd__1","rho__1","slp1__1","slp2__1","sna__1","tll__1","trn__1","twi__1","zen__1","KrP__1","bcdP__1","gtP__1","hbP__1","x__2","y__2","z__2","Nx__2","Ny__2","Nz__2","CG10924__2","CG31607__2","D__2","Kr__2","Traf1__2","bcd__2","brk__2","cad__2","croc__2","eve__2","fkh__2","ftz__2","gt__2","h__2","hb__2","hkb__2","kni__2","knrl__2","noc__2","odd__2","prd__2","rho__2","slp1__2","slp2__2","sna__2","tll__2","trn__2","tsh__2","twi__2","zen__2","KrP__2","bcdP__2","gtP__2","hbP__2","x__3","y__3","z__3","Nx__3","Ny__3","Nz__3","CG10924__3","CG17786__3","CG4702__3","Cyp310a1__3","D__3","Dfd__3","Doc2__3","Kr__3","Traf1__3","brk__3","bun__3","cad__3","cnc__3","croc__3","emc__3","eve__3","fj__3","fkh__3","ftz__3","gt__3","h__3","hb__3","hkb__3","kni__3","knrl__3","oc__3","odd__3","path__3","prd__3","rho__3","sala__3","slp1__3","slp2__3","sna__3","sob__3","srp__3","term__3","tll__3","trn__3","tsh__3","twi__3","zen__3","KrP__3","bcdP__3","gtP__3","hbP__3","x__4","y__4","z__4","Nx__4","Ny__4","Nz__4","Alh__4","Ama__4","Ance__4","Blimp-1__4","Bsg25A__4","Btk29A__4","CG10479__4","CG10924__4","CG11208__4","CG14427__4","CG17724__4","CG17786__4","CG31607__4","CG31670__4","CG8147__4","CG8965__4","Cyp310a1__4","D__4","Dfd__4","Doc2__4","Doc3__4","Esp__4","Ilp4__4","ImpE2__4","Kr__4","MESR3__4","Mdr49__4","Mes2__4","Nek2__4","NetA__4","Traf1__4","aay__4","apt__4","bmm__4","brk__4","bun__4","cad__4","chrb__4","cnc__4","comm2__4","croc__4","dan__4","danr__4","disco__4","dpn__4","emc__4","eve__4","fj__4","fkh__4","ftz__4","gk__4","gt__4","h__4","hb__4","hkb__4","htl__4","jumu__4","ken__4","kni__4","knrl__4","mfas__4","nub__4","numb__4","oc__4","odd__4","path__4","peb__4","prd__4","pxb__4","rho__4","rib__4","sala__4","slp1__4","slp2__4","sna__4","sob__4","srp__4","tkv__4","tll__4","toc__4","trn__4","tsh__4","twi__4","zen__4","KrP__4","gtP__4","hbP__4","x__5","y__5","z__5","Nx__5","Ny__5","Nz__5","Alh__5","Ama__5","Ance__5","Antp__5","Blimp-1__5","Bsg25A__5","Btk29A__5","CG10479__5","CG10924__5","CG13333__5","CG14427__5","CG17724__5","CG31670__5","CG4702__5","CG8147__5","CG8965__5","Cyp310a1__5","D__5","Dfd__5","Esp__5","HLHm5__5","Ilp4__5","ImpE2__5","ImpL2__5","Kr__5","MESR3__5","Mdr49__5","Nek2__5","NetA__5","Traf1__5","aay__5","apt__5","bmm__5","brk__5","bun__5","cad__5","cenG1A__5","chrb__5","cnc__5","comm2__5","croc__5","dan__5","danr__5","disco__5","dpn__5","edl__5","emc__5","eve__5","fj__5","fkh__5","ftz__5","gk__5","gt__5","h__5","hb__5","hkb__5","jumu__5","kni__5","knrl__5","lok__5","mfas__5","noc__5","nub__5","numb__5","oc__5","odd__5","path__5","peb__5","prd__5","pxb__5","rho__5","rib__5","slp1__5","slp2__5","sna__5","sob__5","srp__5","term__5","tkv__5","tll__5","toc__5","trn__5","tsh__5","twi__5","zen__5","KrP__5","gtP__5","hbP__5","x__6","y__6","z__6","Nx__6","Ny__6","Nz__6","Ama__6","Antp__6","Blimp-1__6","Bsg25A__6","Btk29A__6","CG10479__6","CG11208__6","CG13333__6","CG14427__6","CG17724__6","CG17786__6","CG31607__6","CG31670__6","CG8147__6","CG8965__6","Cyp310a1__6","D__6","Dfd__6","Doc2__6","Doc3__6","Esp__6","HLHm5__6","Ilp4__6","ImpE2__6","ImpL2__6","Kr__6","MESR3__6","Mdr49__6","Mes2__6","Nek2__6","NetA__6","Traf1__6","aay__6","apt__6","bmm__6","brk__6","bun__6","cad__6","cenG1A__6","cnc__6","comm2__6","croc__6","dan__6","danr__6","dpn__6","edl__6","emc__6","eve__6","fj__6","fkh__6","ftz__6","gk__6","gt__6","h__6","hb__6","hkb__6","jumu__6","ken__6","kni__6","knrl__6","lok__6","mfas__6","noc__6","nub__6","numb__6","oc__6","odd__6","peb__6","prd__6","pxb__6","rho__6","sala__6","slp1__6","slp2__6","sna__6","sob__6","srp__6","tkv__6","tll__6","toc__6","trn__6","tsh__6","twi__6","zen__6","KrP__6","gtP__6","hbP__6"), sep = ",")
+nuclei=as.data.frame(lapply(nuclei,as.numeric))
+nuclei$exp_eve <- as.numeric(nuclei$eve__3 > 0.2)
+nuclei$bcdP2 <- nuclei$bcdP__3^2
+nuclei$hbP2 <- nuclei$hbP__3^2
+```
+
+The eve expression pattern in a 3D figure can be plotted using following codes.
+```{r}
+colorfunc <- colorRampPalette(c("blue4","lightblue","palegreen3","yellow","red"))
+scatterplot3d(nuclei$x__3,nuclei$y__3,nuclei$z__3,color = colorfunc(6078)[findInterval(nuclei$eve__3,
+                                                                                       seq(0,1.11,len = 6078))],xlab="x",ylab="y",zlab="z",pch = 19,box = F)
+```
+
+I then used following codes to separate the nuclei inside different eve stripes.
+```{r}
+#2D scatter plot shows the formation of stripes in the threshold 0.2
+plot(nuclei$x__3,nuclei$z__3,xlab="x",ylab="z",pch = 19.5,main = "expression of hb in cohort 3",col = colorfunc(6078)[findInterval(nuclei$new_eve,seq(0,1.11, len = 6078))])
+diffSub1 = subset(nuclei, nuclei$eve__3 > 0.2)
+diffSub2 = subset(nuclei, nuclei$eve__3 < 0.2)
+points(diffSub1$x__3,diffSub1$z__3, pch=19.5, col="red")
+points(diffSub2$x__3,diffSub2$z__3, pch=19.5, col="pink")
+
+diffSub1_new = as.data.frame(lapply(diffSub1_new,as.numeric))
+
+
+#Group nuclei into different stripes at cohort 3. 
+eve1 = subset(diffSub1, x__3 > (-115) & x__3 < (-77) | x__3 > (-77) & x__3 < (-70) & z__3 > 0)
+eve2 = subset(diffSub1, x__3 > (-75) & x__3 < (-70) & z__3 < 0 | x__3 > (-70) & x__3 < (-35))
+eve3 = subset(diffSub1, x__3 > (-34.8) & x__3 < 0)
+eve4 = subset(diffSub1, x__3 > 0 & x__3 < 30)
+eve5 = subset(diffSub1, x__3 > 40 & x__3 < 60 | x__3 > 60 & x__3 < 70 & z__3 < 0)
+eve6 = subset(diffSub1, x__3 > 60 & x__3 < 70 & z__3 > 0 | x__3 >= 70 & x__3 < 100 | x__3 > 100 & x__3 < 115 & z__3 < -25)
+eve7 = subset(diffSub1, x__3 > 100 & x__3 < 115 & z__3 > -25 | x__3 > 115)
+```
+
+The model was first trained using a linear combination of known regulators for eve 2. The training data contain nuclei inside the eve stripe 2 and all OFF nuclei.
+```{r}
+#Training data and predict eve 2 expression using model 1
+train = subset(nuclei, x__3 > (-75) & x__3 < (-70) & z__3 < 0 | x__3 > (-70) & x__3 < (-35) & eve__3 > 0.2 | eve__3 < 0.2)
+train$eve_exp <- as.numeric(train$eve__3 > 0.2)
+model1 <- glm(exp_eve ~ bcdP__3 + hbP__3 + gtP__3 + KrP__3, data = train, family = binomial)
+summary(model1)
+predicted <- predict(model1,nuclei,type = "response")
+scatterplot3d(nuclei$x__3,nuclei$y__3,nuclei$z__3,color = colorfunc(6078)[findInterval(predicted,
+                                                                                       seq(0,1,len = 6078))],xlab="x",ylab="y",zlab="z",pch = 19,main = "predicted eve 2 using model 1")
+
+```
+
+The perturbation result for hbP is generated by the following codes. Note: the perturbation results for other regulators were generated by changing the parameter 'hbP'. 
+```{r}
+nuclei$hbP_mut <- 0
+train$hbP_mut <- train$hbP__3
+model_mut <- glm(exp_eve ~ bcdP__3 + hbP_mut + gtP__3 + KrP__3, data = train, family = binomial)
+predicted1 <- predict(model_mut,nuclei,type = "response")
+scatterplot3d(nuclei$x__3,nuclei$y__3,nuclei$z__3,color = colorfunc(6078)[findInterval(predicted1,
+                                                                                       seq(0,1,len = 6078))],xlab="x",ylab="y",zlab="z",pch = 19,main = "mutated hb")
+plot(nuclei$x__3,predicted1,pch = 19, xlab = "x", ylab = "Probability of Expression", main = "hb mutated")
+```
+
+The quadratic model was trained by adding a quadratic term of bcdP.
+```{r}
+quadraticModel1 <- glm(train$exp_eve ~ bcdP__3 + hbP__3 + gtP__3 + KrP__3 + bcdP2, data = train, family = binomial)
+summary(quadraticModel1)
+Qpredicted <- predict(quadraticModel1,nuclei,type = "response")
+scatterplot3d(nuclei$x__3,nuclei$y__3,nuclei$z__3,color = colorfunc(6078)[findInterval(Qpredicted,
+                                                                                       seq(0,1,len = 6078))],xlab="x",ylab="y",zlab="z",pch = 19,main = "Quaduratic model predicted eve 2 expression")
+plot(nuclei$x__3, Qpredicted, pch = 19, xlab = "x", ylab = "Probability of Expression")
+```
+
+Similarly, the perturbation results predicted by the quadratic term were generated using following codes.
+```{r}
+Qmodel_mut <- glm(exp_eve ~ bcdP__3 + hbP_mut + gtP__3 + KrP__3, data = train, family = binomial)
+Qpredicted1 <- predict(Qmodel_mut,nuclei,type = "response")
+scatterplot3d(nuclei$x__3,nuclei$y__3,nuclei$z__3,color = colorfunc(6078)[findInterval(Qpredicted1,
+                                                                                       seq(0,1,len = 6078))],xlab="x",ylab="y",zlab="z",pch = 19,main = "mutated hb")
+plot(nuclei$x__3,Qpredicted1,pch = 19, xlab = "x", ylab = "Probability of Expression", main = "hb mutated")
+```
+
+Visualization of eve stripes.
+
+
+I then moved on to regulatory discovery to see if there is any better model for eve 2. All models are stored in regulators and all possible combinations of 2, 3 and 4 regulators are stored in 'combinations2','combinations3' and 'combinations'.
+```{r}
+regulator <- c("CG10924__3","Cyp310a1__3","D__3","Dfd__3","Doc2__3","brk__3","bun__3","cad__3","cnc__3","croc__3","emc__3","fkh__3","hkb__3","kni__3","knrl__3","oc__3","sala__3","slp1__3","sna__3","sob__3","srp__3","term__3","tll__3","tsh__3","twi__3","KrP__3","bcdP__3","gtP__3","hbP__3")
+combinations <- t(combn(regulator,4))
+combinations2 <- t(combn(regulator,2))
+combinations3 <- t(combn(regulator,3))
+```
+
+'all_logistic_model' stores the MCC scores for all combinations of 4 regulators. 
+```{r}
+all_logistic_model = data.frame()
+for(i in 1:23751){
+  modelx <- glm(substitute(exp_eve ~ x + y + z + q,list(x = as.name(combinations[i,1]), y = as.name(combinations[i,2]), z = as.name(combinations[i,3]), q = as.name(combinations[i,4]))),
+                data = train, family = binomial)
+  predictedx <- predict(modelx,nuclei,type = "response")
+  bi_predictedx <- as.numeric(predictedx > 0.5)
+  mccrx <- mccr(nuclei$eve2,bi_predictedx)
+  all_logistic_model[i,1] <- mccrx
+}
+
+all_logistic_model$R1 <- combinations[,1]
+all_logistic_model$R2 <- combinations[,2]
+all_logistic_model$R3 <- combinations[,3]
+all_logistic_model$R4 <- combinations[,4]
+reg_max_mcc <- data.frame(matrix(ncol = 29, nrow = 29))
+colnames(reg_max_mcc) <- regulator
+rownames(reg_max_mcc) <- regulator
+for(i in 1:406){
+  reg_mcc <- c()
+  for(j in 1:23751){
+    if(sum(as.numeric(combinations2[i,] %in% combinations[j,])) == 2){
+      reg_mcc <- append(reg_mcc,all_logistic_model[j,"V1"])
+    }
+  }
+  x <- as.character(combinations2[i,1])
+  y <- as.character(combinations2[i,2])
+  reg_max_mcc[x,y] <- max(reg_mcc)
+  reg_max_mcc[y,x] <- max(reg_mcc)
+}
+
+reg_max_mcc[is.na(reg_max_mcc)] <- 0
+heatmap_eve2_linear <- pheatmap(as.matrix(reg_max_mcc), cluster_cols = F, cluster_rows = F)
+```
+
+Regulatory discovery for quadratic models for eve 2. The quadratic term of bcdP is included when the combination has bcdP. 
+```{r}
+all_Qlogistic_model = data.frame()
+for(i in 1:23751){
+  if("bcdP__3" %in% combinations[i,]){
+    Qmodelx <- glm(substitute(exp_eve ~ x + y + z + q + bcdP2,list(x = as.name(combinations[i,1]), y = as.name(combinations[i,2]), z = as.name(combinations[i,3]), q = as.name(combinations[i,4]))),
+                  data = train, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$eve2,Qbi_predictedx)
+    all_Qlogistic_model[i,1] <- Qmccrx
+  }else{
+    Qmodelx <- glm(substitute(exp_eve ~ x + y + z + q,list(x = as.name(combinations[i,1]), y = as.name(combinations[i,2]), z = as.name(combinations[i,3]), q = as.name(combinations[i,4]))),
+                  data = train, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$eve2,Qbi_predictedx)
+    all_Qlogistic_model[i,1] <- Qmccrx
+  }
+}
+all_Qlogistic_model$R1 <- combinations[,1]
+all_Qlogistic_model$R2 <- combinations[,2]
+all_Qlogistic_model$R3 <- combinations[,3]
+all_Qlogistic_model$R4 <- combinations[,4]
+Qreg_max_mcc <- data.frame(matrix(ncol = 29, nrow = 29))
+colnames(Qreg_max_mcc) <- regulator
+rownames(Qreg_max_mcc) <- regulator
+for(i in 1:406){
+  Qreg_mcc <- c()
+  for(j in 1:23751){
+    if(sum(as.numeric(combinations2[i,] %in% combinations[j,])) == 2){
+      Qreg_mcc <- append(Qreg_mcc,all_Qlogistic_model[j,"V1"])
+    }
+  }
+  x <- as.character(combinations2[i,1])
+  y <- as.character(combinations2[i,2])
+  Qreg_max_mcc[x,y] <- max(Qreg_mcc)
+  Qreg_max_mcc[y,x] <- max(Qreg_mcc)
+}
+Qreg_max_mcc[is.na(Qreg_max_mcc)] <- 0
+head(all_Qlogistic_model[with(all_Qlogistic_model,order(-V1)),])
+heatmap_eve2_quadratic <- pheatmap(as.matrix(Qreg_max_mcc), cluster_cols = F, cluster_rows = F)
+```
+
+Having successfully predicted the expression pattern of eve 2, we then moved on to use our models to predict the expression pattern of synthetic genes. First, I merged the eve stripes to form 3 stripes, and the synthetic gene is named as trieve.  
+```{r}
+#Creating new eve stripes
+for(i in 1:6078){
+  if(i %in% test_dataset$id){
+    nuclei[i,"new_eve"] <- nuclei[i,"eve__3"]
+  }else{
+    nuclei[i,"new_eve"] <- nuclei[i,"eve__3"]*5
+  }
+}
+diffSub1_new = subset(nuclei, nuclei$new_eve > 0.2)
+diffSub2_new = subset(nuclei, nuclei$new_eve < 0.2)
+new_stripe1 <- subset(diffSub1_new, x__3 > (-115) & x__3 < (-35))
+new_stripe2 <- subset(diffSub1_new, x__3 > (-33) & x__3 < (30))
+new_stripe3 <- subset(diffSub1_new, x__3 > 30)
+new_stripe1_nuclei <- new_stripe1$id
+new_stripe2_nuclei <- new_stripe2$id
+new_stripe3_nuclei <- new_stripe3$id
+nuclei$exp_new_eve1 <- as.numeric(nuclei$id %in% new_stripe1_nuclei)
+nuclei$exp_new_eve2 <- as.numeric(nuclei$id %in% new_stripe2_nuclei)
+nuclei$exp_new_eve3 <- as.numeric(nuclei$id %in% new_stripe3_nuclei)
+new_train_stripe1 <- subset(nuclei, id %in% new_stripe1_nuclei | new_eve < 0.2)
+new_train_stripe2 <- subset(nuclei, id %in% new_stripe2_nuclei | new_eve < 0.2)
+new_train_stripe3 <- subset(nuclei, id %in% new_stripe3_nuclei | new_eve < 0.2)
+```
+
+Regulatory discovery for trieve stripes. 'all_MCC_new_stripe1_3R' stores the MCC scores of all 3-regulator combinations for trieve1, 'exp_new_eve1' the binary expression pattern of trieve1 and the 'new_train_stripe1' the traning dataset for trieve1. Please change the parameter by replacing the number for other trieve stripes. 
+```{r}
+all_MCC_new_stripe1_3R = data.frame()
+for(i in 1:3654){
+  if("bcdP__3" %in% combinations3[i,]){
+    Qmodelx <- glm(substitute(exp_new_eve1 ~ x + y + z + bcdP2,list(x = as.name(combinations3[i,1]), y = as.name(combinations3[i,2]), z = as.name(combinations3[i,3]))),
+                   data = new_train_stripe1, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$exp_new_eve1,Qbi_predictedx)
+    all_MCC_new_stripe1_3R[i,1] <- Qmccrx
+  }else{
+    Qmodelx <- glm(substitute(exp_new_eve1 ~ x + y + z,list(x = as.name(combinations3[i,1]), y = as.name(combinations3[i,2]), z = as.name(combinations3[i,3]))),
+                   data = new_train_stripe1, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$exp_new_eve1,Qbi_predictedx)
+    all_MCC_new_stripe1_3R[i,1] <- Qmccrx
+  }
+}
+
+all_MCC_new_stripe1_3R$R1 <- combinations3[,1]
+all_MCC_new_stripe1_3R$R2 <- combinations3[,2]
+all_MCC_new_stripe1_3R$R3 <- combinations3[,3]
+
+Max_MCC_new_stripe1_3R <- data.frame(matrix(ncol = 29, nrow = 29))
+colnames(Max_MCC_new_stripe1_3R) <- regulator
+rownames(Max_MCC_new_stripe1_3R) <- regulator
+for(i in 1:406){
+  reg_mcc_quadra <- c()
+  for(j in 1:3654){
+    if(sum(as.numeric(combinations2[i,] %in% combinations3[j,])) == 2){
+      reg_mcc_quadra <- append(reg_mcc_quadra,all_MCC_new_stripe1_3R[j,"V1"])
+    }
+  }
+  x <- as.character(combinations2[i,1])
+  y <- as.character(combinations2[i,2])
+  Max_MCC_new_stripe1_3R[x,y] <- max(reg_mcc_quadra)
+  Max_MCC_new_stripe1_3R[y,x] <- max(reg_mcc_quadra)
+}
+
+Max_MCC_new_stripe1_3R[is.na(Max_MCC_new_stripe1_3R)] <- 0.5
+heatmap_Max_MCC_new_stripe1_3R <- pheatmap(as.matrix(Max_MCC_new_stripe1_3R), cluster_cols = F, cluster_rows = F)
+head(all_MCC_new_stripe1_3R[with(all_MCC_new_stripe1_3R,order(-V1)),])
+```
+
+For synthetic genes that forms 4 to 9 stripes, I manually defined the borders of the stripes. The following codes define the borders of quadraeve stripes. 
+```{r}
+# new stripe 1 for quadraeve1
+eq = function(x){5*x + 550}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){5*x + 400}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_fourstripe1 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_fourstripe1 <- rbind(new_fourstripe1, nuclei[i,])
+  }
+}
+plot(nuclei$x__3,nuclei$z__3,col = "grey",pch = 20, xlab = "AP",ylab = "DV", main = "Synthetic 4-stripe model")
+points(new_fourstripe1$x__3,new_fourstripe1$z__3,col = "white", pch = 20)
+
+# new stripe 2
+new_fourstripe2 <- subset(nuclei,x__3 > -40 & x__3 < -10)
+points(new_fourstripe2$x__3,new_fourstripe2$z__3,col = "white", pch = 20)
+
+# new stripe 3
+new_fourstripe3 <- subset(nuclei,x__3 > 10 & x__3 < 40)
+points(new_fourstripe3$x__3,new_fourstripe3$z__3,col = "white", pch = 20)
+
+# new stripe 4
+eq = function(x){-5*x + 400}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+
+eq2 = function(x){-5*x + 550}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+new_fourstripe4 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) < nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) > nuclei[i,"z__3"]){
+    new_fourstripe4 <- rbind(new_fourstripe4, nuclei[i,])
+  }
+}
+points(new_fourstripe4$x__3,new_fourstripe4$z__3,col = "white", pch = 20)
+```
+
+Defining the training data for quadraeve stripes. 
+```{r}
+for(i in 1:6078){
+  if(i %in% new_fourstripe1$id){
+    nuclei[i,"new_quadraeve"] <- 1
+  }else if(i %in% new_fourstripe2$id){
+    nuclei[i,"new_quadraeve"] <- 1
+  }else if(i %in% new_fourstripe3$id){
+    nuclei[i,"new_quadraeve"] <- 1
+  }else if(i %in% new_fourstripe4$id){
+    nuclei[i,"new_quadraeve"] <- 1
+  }else{
+    nuclei[i,"new_quadraeve"] <- 0
+  }
+}
+
+nuclei$new_quadraeve1 <- as.numeric(nuclei$id %in% new_fourstripe1$id)
+nuclei$new_quadraeve2 <- as.numeric(nuclei$id %in% new_fourstripe2$id)
+nuclei$new_quadraeve3 <- as.numeric(nuclei$id %in% new_fourstripe3$id)
+nuclei$new_quadraeve4 <- as.numeric(nuclei$id %in% new_fourstripe4$id)
+new_quadraeve1_nuclei <- new_fourstripe1$id
+new_quadraeve2_nuclei <- new_fourstripe2$id
+new_quadraeve3_nuclei <- new_fourstripe3$id
+new_quadraeve4_nuclei <- new_fourstripe4$id
+new_quadraeve1_train <- subset(nuclei, id %in% new_quadraeve1_nuclei| new_quadraeve < 0.2)
+new_quadraeve2_train <- subset(nuclei, id %in% new_quadraeve2_nuclei| new_quadraeve < 0.2)
+new_quadraeve3_train <- subset(nuclei, id %in% new_quadraeve3_nuclei| new_quadraeve < 0.2)
+new_quadraeve4_train <- subset(nuclei, id %in% new_quadraeve4_nuclei| new_quadraeve < 0.2)
+
+```
+
+Regulatory discovery for quadraeve1. Please change the parameter for other stripes. 
+```{r}
+all_MCC_new_quadraeve1_3R = data.frame()
+for(i in 1:3654){
+  if("bcdP__3" %in% combinations3[i,]){
+    Qmodelx <- glm(substitute(new_quadraeve1 ~ x + y + z + bcdP2,list(x = as.name(combinations3[i,1]), y = as.name(combinations3[i,2]), z = as.name(combinations3[i,3]))),
+                   data = new_quadraeve1_train, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$new_quadraeve1,Qbi_predictedx)
+    all_MCC_new_quadraeve1_3R[i,1] <- Qmccrx
+  }else{
+    Qmodelx <- glm(substitute(new_quadraeve1 ~ x + y + z,list(x = as.name(combinations3[i,1]), y = as.name(combinations3[i,2]), z = as.name(combinations3[i,3]))),
+                   data = new_quadraeve1_train, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$new_quadraeve1,Qbi_predictedx)
+    all_MCC_new_quadraeve1_3R[i,1] <- Qmccrx
+  }
+}
+
+all_MCC_new_quadraeve1_3R$R1 <- combinations3[,1]
+all_MCC_new_quadraeve1_3R$R2 <- combinations3[,2]
+all_MCC_new_quadraeve1_3R$R3 <- combinations3[,3]
+head(all_MCC_new_quadraeve1_3R[with(all_MCC_new_quadraeve1_3R,order(-V1)),])
+
+Max_MCC_new_quadraeve1_3R <- data.frame(matrix(ncol = 29, nrow = 29))
+colnames(Max_MCC_new_quadraeve1_3R) <- regulator
+rownames(Max_MCC_new_quadraeve1_3R) <- regulator
+for(i in 1:406){
+  reg_mcc_quadra <- c()
+  for(j in 1:3654){
+    if(sum(as.numeric(combinations2[i,] %in% combinations3[j,])) == 2){
+      reg_mcc_quadra <- append(reg_mcc_quadra,all_MCC_new_quadraeve1_3R[j,"V1"])
+    }
+  }
+  x <- as.character(combinations2[i,1])
+  y <- as.character(combinations2[i,2])
+  Max_MCC_new_quadraeve1_3R[x,y] <- max(reg_mcc_quadra)
+  Max_MCC_new_quadraeve1_3R[y,x] <- max(reg_mcc_quadra)
+}
+
+Max_MCC_new_quadraeve1_3R[is.na(Max_MCC_new_quadraeve1_3R)] <- 0.5
+heatmap_Max_MCC_new_quadraeve1_3R <- pheatmap(as.matrix(Max_MCC_new_quadraeve1_3R), cluster_cols = F, cluster_rows = F)
+head(all_MCC_new_quadraeve1_3R[with(all_MCC_new_quadraeve1_3R,order(-V1)),])
+```
+
+Defining the borders of pentaeve.
+```{r}
+eq = function(x){5*x + 525}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){5*x + 375}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_fivestripe1 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_fivestripe1 <- rbind(new_fivestripe1, nuclei[i,])
+  }
+}
+plot(nuclei$x__3,nuclei$z__3,col = "grey",pch = 20, xlab = "AP",ylab = "DV", main = "Synthetic 5-stripe model")
+points(new_fivestripe1$x__3,new_fivestripe1$z__3,col = "white", pch = 20)
+
+# Stripe 2
+eq = function(x){7*x + 385}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){7*x + 175}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_fivestripe2 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_fivestripe2 <- rbind(new_fivestripe2, nuclei[i,])
+  }
+}
+points(new_fivestripe2$x__3,new_fivestripe2$z__3,col = "white", pch = 20)
+
+#Stripe 3
+new_fivestripe3 <- subset(nuclei,x__3 > 5 & x__3 < 35)
+points(new_fivestripe3$x__3,new_fivestripe3$z__3,col = "white", pch = 20)
+
+# Stripe 4
+eq = function(x){-7*x + 685}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){-7*x + 475}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_fivestripe4 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_fivestripe4 <- rbind(new_fivestripe4, nuclei[i,])
+  }
+}
+points(new_fivestripe4$x__3,new_fivestripe4$z__3,col = "white", pch = 20)
+
+# Stripe 5
+eq = function(x){-5*x + 735}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){-5*x + 565}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_fivestripe5 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_fivestripe5 <- rbind(new_fivestripe5, nuclei[i,])
+  }
+}
+points(new_fivestripe5$x__3,new_fivestripe5$z__3,col = "white", pch = 20)
+```
+
+Defining the training data for pentaeve.
+```{r}
+for(i in 1:6078){
+  if(i %in% new_fivestripe1$id){
+    nuclei[i,"new_fivestripe"] <- 1
+  }else if(i %in% new_fivestripe2$id){
+    nuclei[i,"new_fivestripe"] <- 1
+  }else if(i %in% new_fivestripe3$id){
+    nuclei[i,"new_fivestripe"] <- 1
+  }else if(i %in% new_fivestripe4$id){
+    nuclei[i,"new_fivestripe"] <- 1
+  }else if(i %in% new_fivestripe5$id){
+    nuclei[i,"new_fivestripe"] <- 1
+  }else{
+    nuclei[i,"new_fivestripe"] <- 0
+  }
+}
+
+nuclei$new_fivestripe1 <- as.numeric(nuclei$id %in% new_fivestripe1$id)
+nuclei$new_fivestripe2 <- as.numeric(nuclei$id %in% new_fivestripe2$id)
+nuclei$new_fivestripe3 <- as.numeric(nuclei$id %in% new_fivestripe3$id)
+nuclei$new_fivestripe4 <- as.numeric(nuclei$id %in% new_fivestripe4$id)
+nuclei$new_fivestripe5 <- as.numeric(nuclei$id %in% new_fivestripe5$id)
+
+new_fivestripe1_nuclei <- new_fivestripe1$id
+new_fivestripe2_nuclei <- new_fivestripe2$id
+new_fivestripe3_nuclei <- new_fivestripe3$id
+new_fivestripe4_nuclei <- new_fivestripe4$id
+new_fivestripe5_nuclei <- new_fivestripe5$id
+
+new_fivestripe1_train <- subset(nuclei, id %in% new_fivestripe1_nuclei| new_fivestripe < 0.2)
+new_fivestripe2_train <- subset(nuclei, id %in% new_fivestripe2_nuclei| new_fivestripe < 0.2)
+new_fivestripe3_train <- subset(nuclei, id %in% new_fivestripe3_nuclei| new_fivestripe < 0.2)
+new_fivestripe4_train <- subset(nuclei, id %in% new_fivestripe4_nuclei| new_fivestripe < 0.2)
+new_fivestripe5_train <- subset(nuclei, id %in% new_fivestripe5_nuclei| new_fivestripe < 0.2)
+
+```
+
+Regulatory discovery for pentaeve 1. Please replace the number '1' for other stripes.
+```{r}
+all_MCC_new_fivestripe1_3R = data.frame()
+for(i in 1:3654){
+  if("bcdP__3" %in% combinations3[i,]){
+    Qmodelx <- glm(substitute(new_fivestripe1 ~ x + y + z + bcdP2,list(x = as.name(combinations3[i,1]), y = as.name(combinations3[i,2]), z = as.name(combinations3[i,3]))),
+                   data = new_fivestripe1_train, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$new_fivestripe1,Qbi_predictedx)
+    all_MCC_new_fivestripe1_3R[i,1] <- Qmccrx
+  }else{
+    Qmodelx <- glm(substitute(new_fivestripe1 ~ x + y + z,list(x = as.name(combinations3[i,1]), y = as.name(combinations3[i,2]), z = as.name(combinations3[i,3]))),
+                   data = new_fivestripe1_train, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$new_fivestripe1,Qbi_predictedx)
+    all_MCC_new_fivestripe1_3R[i,1] <- Qmccrx
+  }
+}
+
+all_MCC_new_fivestripe1_3R$R1 <- combinations3[,1]
+all_MCC_new_fivestripe1_3R$R2 <- combinations3[,2]
+all_MCC_new_fivestripe1_3R$R3 <- combinations3[,3]
+
+Max_MCC_new_fivestripe1_3R <- data.frame(matrix(ncol = 29, nrow = 29))
+colnames(Max_MCC_new_fivestripe1_3R) <- regulator
+rownames(Max_MCC_new_fivestripe1_3R) <- regulator
+for(i in 1:406){
+  reg_mcc_quadra <- c()
+  for(j in 1:3654){
+    if(sum(as.numeric(combinations2[i,] %in% combinations3[j,])) == 2){
+      reg_mcc_quadra <- append(reg_mcc_quadra,all_MCC_new_fivestripe1_3R[j,"V1"])
+    }
+  }
+  x <- as.character(combinations2[i,1])
+  y <- as.character(combinations2[i,2])
+  Max_MCC_new_fivestripe1_3R[x,y] <- max(reg_mcc_quadra)
+  Max_MCC_new_fivestripe1_3R[y,x] <- max(reg_mcc_quadra)
+}
+
+Max_MCC_new_fivestripe1_3R[is.na(Max_MCC_new_fivestripe1_3R)] <- 0.5
+heatmap_Max_MCC_new_fivestripe1_3R <- pheatmap(as.matrix(Max_MCC_new_fivestripe1_3R), cluster_cols = F, cluster_rows = F)
+head(all_MCC_new_fivestripe1_3R[with(all_MCC_new_fivestripe1_3R,order(-V1)),])
+```
+
+Defining the borders for hexaeve.
+```{r}
+eq = function(x){5*x + 600}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){5*x + 475}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_sixstripe1 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_sixstripe1 <- rbind(new_sixstripe1, nuclei[i,])
+  }
+}
+plot(nuclei$x__3,nuclei$z__3,col = "grey",pch = 20, xlab = "AP",ylab = "DV", main = "Synthetic 5-stripe model")
+points(new_sixstripe1$x__3,new_sixstripe1$z__3,col = "white", pch = 20)
+
+# stripe 2
+eq = function(x){7*x + 500}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){7*x + 325}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_sixstripe2 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_sixstripe2 <- rbind(new_sixstripe2, nuclei[i,])
+  }
+}
+points(new_sixstripe2$x__3,new_sixstripe2$z__3,col = "white", pch = 20)
+
+# Stripe 3
+new_sixstripe3 <- subset(nuclei,x__3 > -15 & x__3 < 10)
+points(new_sixstripe3$x__3,new_sixstripe3$z__3,col = "white", pch = 20)
+
+# Stripe 4
+new_sixstripe4 <- subset(nuclei,x__3 > 30 & x__3 < 55)
+points(new_sixstripe4$x__3,new_sixstripe4$z__3,col = "white", pch = 20)
+
+# Stripe 5
+eq = function(x){-7*x + 800}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){-7*x + 625}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_sixstripe5 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_sixstripe5 <- rbind(new_sixstripe5, nuclei[i,])
+  }
+}
+points(new_sixstripe5$x__3,new_sixstripe5$z__3,col = "white", pch = 20)
+
+# Stripe 6
+eq = function(x){-5*x + 800}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){-5*x + 675}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_sixstripe6 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_sixstripe6 <- rbind(new_sixstripe6, nuclei[i,])
+  }
+}
+points(new_sixstripe6$x__3,new_sixstripe6$z__3,col = "white", pch = 20)
+```
+
+Defining the training data for hexaeve stripes.
+```{r}
+for(i in 1:6078){
+  if(i %in% new_sixstripe1$id){
+    nuclei[i,"new_sixstripe"] <- 1
+  }else if(i %in% new_sixstripe2$id){
+    nuclei[i,"new_sixstripe"] <- 1
+  }else if(i %in% new_sixstripe3$id){
+    nuclei[i,"new_sixstripe"] <- 1
+  }else if(i %in% new_sixstripe4$id){
+    nuclei[i,"new_sixstripe"] <- 1
+  }else if(i %in% new_sixstripe5$id){
+    nuclei[i,"new_sixstripe"] <- 1
+  }else if(i %in% new_sixstripe6$id){
+    nuclei[i,"new_sixstripe"] <- 1
+  }else{
+    nuclei[i,"new_sixstripe"] <- 0
+  }
+}
+
+nuclei$new_sixstripe1 <- as.numeric(nuclei$id %in% new_sixstripe1$id)
+nuclei$new_sixstripe2 <- as.numeric(nuclei$id %in% new_sixstripe2$id)
+nuclei$new_sixstripe3 <- as.numeric(nuclei$id %in% new_sixstripe3$id)
+nuclei$new_sixstripe4 <- as.numeric(nuclei$id %in% new_sixstripe4$id)
+nuclei$new_sixstripe5 <- as.numeric(nuclei$id %in% new_sixstripe5$id)
+nuclei$new_sixstripe6 <- as.numeric(nuclei$id %in% new_sixstripe6$id)
+
+new_sixstripe1_nuclei <- new_sixstripe1$id
+new_sixstripe2_nuclei <- new_sixstripe2$id
+new_sixstripe3_nuclei <- new_sixstripe3$id
+new_sixstripe4_nuclei <- new_sixstripe4$id
+new_sixstripe5_nuclei <- new_sixstripe5$id
+new_sixstripe6_nuclei <- new_sixstripe6$id
+
+new_sixstripe1_train <- subset(nuclei, id %in% new_sixstripe1_nuclei| new_sixstripe < 0.2)
+new_sixstripe2_train <- subset(nuclei, id %in% new_sixstripe2_nuclei| new_sixstripe < 0.2)
+new_sixstripe3_train <- subset(nuclei, id %in% new_sixstripe3_nuclei| new_sixstripe < 0.2)
+new_sixstripe4_train <- subset(nuclei, id %in% new_sixstripe4_nuclei| new_sixstripe < 0.2)
+new_sixstripe5_train <- subset(nuclei, id %in% new_sixstripe5_nuclei| new_sixstripe < 0.2)
+new_sixstripe6_train <- subset(nuclei, id %in% new_sixstripe6_nuclei| new_sixstripe < 0.2)
+```
+
+Regulatory discovery for hexaeve 1. Please change the parameters for other stripes. 
+```{r}
+all_MCC_new_sixstripe1_3R = data.frame()
+for(i in 1:3654){
+  if("hbP__3" %in% combinations3[i,]){
+    Qmodelx <- glm(substitute(new_sixstripe1 ~ x + y + z + hbP2,list(x = as.name(combinations3[i,1]), y = as.name(combinations3[i,2]), z = as.name(combinations3[i,3]))),
+                   data = new_sixstripe1_train, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$new_sixstripe1,Qbi_predictedx)
+    all_MCC_new_sixstripe1_3R[i,1] <- Qmccrx
+  }else{
+    Qmodelx <- glm(substitute(new_sixstripe1 ~ x + y + z,list(x = as.name(combinations3[i,1]), y = as.name(combinations3[i,2]), z = as.name(combinations3[i,3]))),
+                   data = new_sixstripe1_train, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$new_sixstripe1,Qbi_predictedx)
+    all_MCC_new_sixstripe1_3R[i,1] <- Qmccrx
+  }
+}
+
+all_MCC_new_sixstripe1_3R$R1 <- combinations3[,1]
+all_MCC_new_sixstripe1_3R$R2 <- combinations3[,2]
+all_MCC_new_sixstripe1_3R$R3 <- combinations3[,3]
+
+Max_MCC_new_sixstripe1_3R <- data.frame(matrix(ncol = 29, nrow = 29))
+colnames(Max_MCC_new_sixstripe1_3R) <- regulator
+rownames(Max_MCC_new_sixstripe1_3R) <- regulator
+for(i in 1:406){
+  reg_mcc_quadra <- c()
+  for(j in 1:3654){
+    if(sum(as.numeric(combinations2[i,] %in% combinations3[j,])) == 2){
+      reg_mcc_quadra <- append(reg_mcc_quadra,all_MCC_new_sixstripe1_3R[j,"V1"])
+    }
+  }
+  x <- as.character(combinations2[i,1])
+  y <- as.character(combinations2[i,2])
+  Max_MCC_new_sixstripe1_3R[x,y] <- max(reg_mcc_quadra)
+  Max_MCC_new_sixstripe1_3R[y,x] <- max(reg_mcc_quadra)
+}
+
+Max_MCC_new_sixstripe1_3R[is.na(Max_MCC_new_sixstripe1_3R)] <- 0.5
+heatmap_Max_MCC_new_sixstripe1_3R <- pheatmap(as.matrix(Max_MCC_new_sixstripe1_3R), cluster_cols = F, cluster_rows = F)
+head(all_MCC_new_sixstripe1_3R[with(all_MCC_new_sixstripe1_3R,order(-V1)),])
+
+```
+
+Defining the borders for octeve.
+```{r}
+# Stripe 1
+eq = function(x){5*x + 650}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){5*x + 550}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_eightstripe1 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_eightstripe1 <- rbind(new_eightstripe1, nuclei[i,])
+  }
+}
+plot(nuclei$x__3,nuclei$z__3,col = "grey",pch = 20, xlab = "AP",ylab = "DV", main = "Synthetic 8-stripe model")
+points(new_eightstripe1$x__3,new_eightstripe1$z__3,col = "white", pch = 20)
+
+# Stripe 2
+eq = function(x){7*x + 640}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){7*x + 500}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_eightstripe2 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_eightstripe2 <- rbind(new_eightstripe2, nuclei[i,])
+  }
+}
+points(new_eightstripe2$x__3,new_eightstripe2$z__3,col = "white", pch = 20)
+
+# Stripe 3
+eq = function(x){8*x + 400}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){8*x + 240}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_eightstripe3 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_eightstripe3 <- rbind(new_eightstripe3, nuclei[i,])
+  }
+}
+points(new_eightstripe3$x__3,new_eightstripe3$z__3,col = "white", pch = 20)
+
+#Stripe 4
+new_eightstripe4 <- subset(nuclei,x__3 >-5 & x__3 < 15)
+points(new_eightstripe4$x__3,new_eightstripe4$z__3,col = "white", pch = 20)
+
+#Stripe 5
+eq = function(x){-8*x + 450}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){-8*x + 290}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_eightstripe5 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_eightstripe5 <- rbind(new_eightstripe5, nuclei[i,])
+  }
+}
+points(new_eightstripe5$x__3,new_eightstripe5$z__3,col = "green", pch = 20)
+
+#Stripe 6
+eq = function(x){-8*x + 760}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){-8*x + 600}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_eightstripe6 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_eightstripe6 <- rbind(new_eightstripe6, nuclei[i,])
+  }
+}
+points(new_eightstripe6$x__3,new_eightstripe6$z__3,col = "yellow", pch = 20)
+
+#Stripe 7
+eq = function(x){-7*x + 940}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){-7*x + 800}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_eightstripe7 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_eightstripe7 <- rbind(new_eightstripe7, nuclei[i,])
+  }
+}
+points(new_eightstripe7$x__3,new_eightstripe7$z__3,col = "white", pch = 20)
+
+# Stripe 8
+eq = function(x){-5*x + 850}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){-5*x + 750}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_eightstripe8 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_eightstripe8 <- rbind(new_eightstripe8, nuclei[i,])
+  }
+}
+points(new_eightstripe8$x__3,new_eightstripe8$z__3,col = "blue", pch = 20)
+```
+
+Defining the training data for octaeve stripes.
+```{r}
+for(i in 1:6078){
+  if(i %in% new_eightstripe1$id){
+    nuclei[i,"new_eightstripe"] <- 1
+  }else if(i %in% new_eightstripe2$id){
+    nuclei[i,"new_eightstripe"] <- 1
+  }else if(i %in% new_eightstripe3$id){
+    nuclei[i,"new_eightstripe"] <- 1
+  }else if(i %in% new_eightstripe4$id){
+    nuclei[i,"new_eightstripe"] <- 1
+  }else if(i %in% new_eightstripe5$id){
+    nuclei[i,"new_eightstripe"] <- 1
+  }else if(i %in% new_eightstripe6$id){
+    nuclei[i,"new_eightstripe"] <- 1
+  }else if(i %in% new_eightstripe7$id){
+    nuclei[i,"new_eightstripe"] <- 1
+  }else if(i %in% new_eightstripe8$id){
+    nuclei[i,"new_eightstripe"] <- 1
+  }else{
+    nuclei[i,"new_eightstripe"] <- 0
+  }
+}
+
+nuclei$new_eightstripe1 <- as.numeric(nuclei$id %in% new_eightstripe1$id)
+nuclei$new_eightstripe2 <- as.numeric(nuclei$id %in% new_eightstripe2$id)
+nuclei$new_eightstripe3 <- as.numeric(nuclei$id %in% new_eightstripe3$id)
+nuclei$new_eightstripe4 <- as.numeric(nuclei$id %in% new_eightstripe4$id)
+nuclei$new_eightstripe5 <- as.numeric(nuclei$id %in% new_eightstripe5$id)
+nuclei$new_eightstripe6 <- as.numeric(nuclei$id %in% new_eightstripe6$id)
+nuclei$new_eightstripe7 <- as.numeric(nuclei$id %in% new_eightstripe7$id)
+nuclei$new_eightstripe8 <- as.numeric(nuclei$id %in% new_eightstripe8$id)
+
+
+new_eightstripe1_nuclei <- new_eightstripe1$id
+new_eightstripe2_nuclei <- new_eightstripe2$id
+new_eightstripe3_nuclei <- new_eightstripe3$id
+new_eightstripe4_nuclei <- new_eightstripe4$id
+new_eightstripe5_nuclei <- new_eightstripe5$id
+new_eightstripe6_nuclei <- new_eightstripe6$id
+new_eightstripe7_nuclei <- new_eightstripe7$id
+new_eightstripe8_nuclei <- new_eightstripe8$id
+
+new_eightstripe1_train <- subset(nuclei, id %in% new_eightstripe1_nuclei| new_eightstripe < 0.2)
+new_eightstripe2_train <- subset(nuclei, id %in% new_eightstripe2_nuclei| new_eightstripe < 0.2)
+new_eightstripe3_train <- subset(nuclei, id %in% new_eightstripe3_nuclei| new_eightstripe < 0.2)
+new_eightstripe4_train <- subset(nuclei, id %in% new_eightstripe4_nuclei| new_eightstripe < 0.2)
+new_eightstripe5_train <- subset(nuclei, id %in% new_eightstripe5_nuclei| new_eightstripe < 0.2)
+new_eightstripe6_train <- subset(nuclei, id %in% new_eightstripe6_nuclei| new_eightstripe < 0.2)
+new_eightstripe7_train <- subset(nuclei, id %in% new_eightstripe7_nuclei| new_eightstripe < 0.2)
+new_eightstripe8_train <- subset(nuclei, id %in% new_eightstripe8_nuclei| new_eightstripe < 0.2)
+
+```
+
+Regulatory discovery for octaeve stripe 1. Please change the parameter for other stripes. 
+```{r}
+all_MCC_new_eightstripe1_3R = data.frame()
+for(i in 1:3654){
+  if("bcdP__3" %in% combinations3[i,]){
+    Qmodelx <- glm(substitute(new_eightstripe1 ~ x + y + z + bcdP2,list(x = as.name(combinations3[i,1]), y = as.name(combinations3[i,2]), z = as.name(combinations3[i,3]))),
+                   data = new_eightstripe1_train, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$new_eightstripe1,Qbi_predictedx)
+    all_MCC_new_eightstripe1_3R[i,1] <- Qmccrx
+  }else{
+    Qmodelx <- glm(substitute(new_eightstripe1 ~ x + y + z,list(x = as.name(combinations3[i,1]), y = as.name(combinations3[i,2]), z = as.name(combinations3[i,3]))),
+                   data = new_eightstripe1_train, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$new_eightstripe1,Qbi_predictedx)
+    all_MCC_new_eightstripe1_3R[i,1] <- Qmccrx
+  }
+}
+
+all_MCC_new_eightstripe1_3R$R1 <- combinations3[,1]
+all_MCC_new_eightstripe1_3R$R2 <- combinations3[,2]
+all_MCC_new_eightstripe1_3R$R3 <- combinations3[,3]
+
+Max_MCC_new_eightstripe1_3R <- data.frame(matrix(ncol = 29, nrow = 29))
+colnames(Max_MCC_new_eightstripe1_3R) <- regulator
+rownames(Max_MCC_new_eightstripe1_3R) <- regulator
+for(i in 1:406){
+  reg_mcc_quadra <- c()
+  for(j in 1:3654){
+    if(sum(as.numeric(combinations2[i,] %in% combinations3[j,])) == 2){
+      reg_mcc_quadra <- append(reg_mcc_quadra,all_MCC_new_eightstripe1_3R[j,"V1"])
+    }
+  }
+  x <- as.character(combinations2[i,1])
+  y <- as.character(combinations2[i,2])
+  Max_MCC_new_eightstripe1_3R[x,y] <- max(reg_mcc_quadra)
+  Max_MCC_new_eightstripe1_3R[y,x] <- max(reg_mcc_quadra)
+}
+
+Max_MCC_new_eightstripe1_3R[is.na(Max_MCC_new_eightstripe1_3R)] <- 0.5
+heatmap_Max_MCC_new_eightstripe1_3R <- pheatmap(as.matrix(Max_MCC_new_eightstripe1_3R), cluster_cols = F, cluster_rows = F)
+head(all_MCC_new_eightstripe1_3R[with(all_MCC_new_eightstripe1_3R,order(-V1)),])
+```
+
+Defining the borders for nonaeve.
+```{r}
+# Stripe 1
+eq = function(x){5*x + 850}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){5*x + 750}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_ninestripe1 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_ninestripe1 <- rbind(new_ninestripe1, nuclei[i,])
+  }
+}
+plot(nuclei$x__3,nuclei$z__3,col = "grey",pch = 20, xlab = "AP",ylab = "DV", main = "Synthetic 9-stripe model")
+points(new_ninestripe1$x__3,new_ninestripe1$z__3,col = "white", pch = 20)
+
+# Stripe 2
+eq = function(x){5*x + 650}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){5*x + 550}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_ninestripe2 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_ninestripe2 <- rbind(new_ninestripe2, nuclei[i,])
+  }
+}
+points(new_ninestripe2$x__3,new_ninestripe2$z__3,col = "white", pch = 20)
+
+# Stripe 3
+eq = function(x){7*x + 640}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){7*x + 500}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_ninestripe3 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_ninestripe3 <- rbind(new_ninestripe3, nuclei[i,])
+  }
+}
+points(new_ninestripe3$x__3,new_ninestripe3$z__3,col = "white", pch = 20)
+
+# Stripe 3
+eq = function(x){8*x + 400}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){8*x + 240}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_ninestripe4 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_ninestripe4 <- rbind(new_ninestripe4, nuclei[i,])
+  }
+}
+points(new_ninestripe4$x__3,new_ninestripe4$z__3,col = "white", pch = 20)
+
+#Stripe 4
+new_ninestripe5 <- subset(nuclei,x__3 >-5 & x__3 < 15)
+points(new_ninestripe5$x__3,new_ninestripe5$z__3,col = "white", pch = 20)
+
+#Stripe 6
+eq = function(x){-8*x + 450}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){-8*x + 290}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_ninestripe6 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_ninestripe6 <- rbind(new_ninestripe6, nuclei[i,])
+  }
+}
+points(new_ninestripe6$x__3,new_ninestripe6$z__3,col = "white", pch = 20)
+
+#Stripe 7
+eq = function(x){-8*x + 760}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){-8*x + 600}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_ninestripe7 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_ninestripe7 <- rbind(new_ninestripe7, nuclei[i,])
+  }
+}
+points(new_ninestripe7$x__3,new_ninestripe7$z__3,col = "white", pch = 20)
+
+#Stripe 8
+eq = function(x){-7*x + 940}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){-7*x + 800}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_ninestripe8 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_ninestripe8 <- rbind(new_ninestripe8, nuclei[i,])
+  }
+}
+points(new_ninestripe8$x__3,new_ninestripe8$z__3,col = "white", pch = 20)
+
+# Stripe 9
+eq = function(x){-5*x + 850}
+set.seed(24)
+line.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line.df[i,1] <- x
+  line.df[i,2] <- eq(x)
+}
+eq2 = function(x){-5*x + 750}
+line2.df = data.frame(value = sample(0:2500, 100, replace=TRUE))
+for(i in 0:200){
+  x = i - 200
+  line2.df[i,1] <- x
+  line2.df[i,2] <- eq2(x)
+}
+
+
+new_ninestripe9 <- data.frame()
+for(i in 1:6078){
+  if(eq(nuclei[i,"x__3"]) > nuclei[i, "z__3"] & eq2(nuclei[i,"x__3"]) < nuclei[i,"z__3"]){
+    new_ninestripe9 <- rbind(new_ninestripe9, nuclei[i,])
+  }
+}
+points(new_ninestripe9$x__3,new_ninestripe9$z__3,col = "white", pch = 20)
+```
+
+Defining the training data for nonaeve stripes.
+```{r}
+for(i in 1:6078){
+  if(i %in% new_ninestripe1$id){
+    nuclei[i,"new_ninestripe"] <- 1
+  }else if(i %in% new_ninestripe2$id){
+    nuclei[i,"new_ninestripe"] <- 1
+  }else if(i %in% new_ninestripe3$id){
+    nuclei[i,"new_ninestripe"] <- 1
+  }else if(i %in% new_ninestripe4$id){
+    nuclei[i,"new_ninestripe"] <- 1
+  }else if(i %in% new_ninestripe5$id){
+    nuclei[i,"new_ninestripe"] <- 1
+  }else if(i %in% new_ninestripe6$id){
+    nuclei[i,"new_ninestripe"] <- 1
+  }else if(i %in% new_ninestripe7$id){
+    nuclei[i,"new_ninestripe"] <- 1
+  }else if(i %in% new_ninestripe8$id){
+    nuclei[i,"new_ninestripe"] <- 1
+  }else if(i %in% new_ninestripe9$id){
+    nuclei[i,"new_ninestripe"] <- 1
+  }else{
+    nuclei[i,"new_ninestripe"] <- 0
+  }
+}
+
+nuclei$new_ninestripe1 <- as.numeric(nuclei$id %in% new_ninestripe1$id)
+nuclei$new_ninestripe2 <- as.numeric(nuclei$id %in% new_ninestripe2$id)
+nuclei$new_ninestripe3 <- as.numeric(nuclei$id %in% new_ninestripe3$id)
+nuclei$new_ninestripe4 <- as.numeric(nuclei$id %in% new_ninestripe4$id)
+nuclei$new_ninestripe5 <- as.numeric(nuclei$id %in% new_ninestripe5$id)
+nuclei$new_ninestripe6 <- as.numeric(nuclei$id %in% new_ninestripe6$id)
+nuclei$new_ninestripe7 <- as.numeric(nuclei$id %in% new_ninestripe7$id)
+nuclei$new_ninestripe8 <- as.numeric(nuclei$id %in% new_ninestripe8$id)
+nuclei$new_ninestripe9 <- as.numeric(nuclei$id %in% new_ninestripe9$id)
+
+new_ninestripe1_nuclei <- new_ninestripe1$id
+new_ninestripe2_nuclei <- new_ninestripe2$id
+new_ninestripe3_nuclei <- new_ninestripe3$id
+new_ninestripe4_nuclei <- new_ninestripe4$id
+new_ninestripe5_nuclei <- new_ninestripe5$id
+new_ninestripe6_nuclei <- new_ninestripe6$id
+new_ninestripe7_nuclei <- new_ninestripe7$id
+new_ninestripe8_nuclei <- new_ninestripe8$id
+new_ninestripe9_nuclei <- new_ninestripe9$id
+
+new_ninestripe1_train <- subset(nuclei, id %in% new_ninestripe1_nuclei| new_ninestripe < 0.2)
+new_ninestripe2_train <- subset(nuclei, id %in% new_ninestripe2_nuclei| new_ninestripe < 0.2)
+new_ninestripe3_train <- subset(nuclei, id %in% new_ninestripe3_nuclei| new_ninestripe < 0.2)
+new_ninestripe4_train <- subset(nuclei, id %in% new_ninestripe4_nuclei| new_ninestripe < 0.2)
+new_ninestripe5_train <- subset(nuclei, id %in% new_ninestripe5_nuclei| new_ninestripe < 0.2)
+new_ninestripe6_train <- subset(nuclei, id %in% new_ninestripe6_nuclei| new_ninestripe < 0.2)
+new_ninestripe7_train <- subset(nuclei, id %in% new_ninestripe7_nuclei| new_ninestripe < 0.2)
+new_ninestripe8_train <- subset(nuclei, id %in% new_ninestripe8_nuclei| new_ninestripe < 0.2)
+new_ninestripe9_train <- subset(nuclei, id %in% new_ninestripe9_nuclei| new_ninestripe < 0.2)
+
+```
+
+Regulatory discovery for nonaeve 1. Please change the parameter for different stripes.
+```{r}
+all_MCC_new_ninestripe1_3R = data.frame()
+for(i in 1:3654){
+  if("hbP__3" %in% combinations3[i,]){
+    Qmodelx <- glm(substitute(new_ninestripe1 ~ x + y + z + hbP2,list(x = as.name(combinations3[i,1]), y = as.name(combinations3[i,2]), z = as.name(combinations3[i,3]))),
+                   data = new_ninestripe1_train, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$new_ninestripe1,Qbi_predictedx)
+    all_MCC_new_ninestripe1_3R[i,1] <- Qmccrx
+  }else{
+    Qmodelx <- glm(substitute(new_ninestripe1 ~ x + y + z,list(x = as.name(combinations3[i,1]), y = as.name(combinations3[i,2]), z = as.name(combinations3[i,3]))),
+                   data = new_ninestripe1_train, family = binomial)
+    Qpredictedx <- predict(Qmodelx,nuclei,type = "response")
+    Qbi_predictedx <- as.numeric(Qpredictedx > 0.5)
+    Qmccrx <- mccr(nuclei$new_ninestripe9,Qbi_predictedx)
+    all_MCC_new_ninestripe1_3R[i,1] <- Qmccrx
+  }
+}
+
+all_MCC_new_ninestripe1_3R$R1 <- combinations3[,1]
+all_MCC_new_ninestripe1_3R$R2 <- combinations3[,2]
+all_MCC_new_ninestripe1_3R$R3 <- combinations3[,3]
+
+Max_MCC_new_ninestripe1_3R <- data.frame(matrix(ncol = 29, nrow = 29))
+colnames(Max_MCC_new_ninestripe1_3R) <- regulator
+rownames(Max_MCC_new_ninestripe1_3R) <- regulator
+for(i in 1:406){
+  reg_mcc_quadra <- c()
+  for(j in 1:3654){
+    if(sum(as.numeric(combinations2[i,] %in% combinations3[j,])) == 2){
+      reg_mcc_quadra <- append(reg_mcc_quadra,all_MCC_new_ninestripe1_3R[j,"V1"])
+    }
+  }
+  x <- as.character(combinations2[i,1])
+  y <- as.character(combinations2[i,2])
+  Max_MCC_new_ninestripe1_3R[x,y] <- max(reg_mcc_quadra)
+  Max_MCC_new_ninestripe1_3R[y,x] <- max(reg_mcc_quadra)
+}
+
+Max_MCC_new_ninestripe1_3R[is.na(Max_MCC_new_ninestripe1_3R)] <- 0.5
+heatmap_Max_MCC_new_ninestripe1_3R <- pheatmap(as.matrix(Max_MCC_new_ninestripe1_3R), cluster_cols = F, cluster_rows = F)
+head(all_MCC_new_ninestripe1_3R[with(all_MCC_new_ninestripe1_3R,order(-V1)),])
+```
+
+Visualization that only contains ON and OFF nuclei for synthetic stripes. Please change the regulators and parameters for different stripes. The example shows nonaeve 9. 
+```{r}
+best_model_stripe <- glm(new_ninestripe9 ~ fkh__3 + srp__3 + tsh__3, data = new_ninestripe9_train, family = binomial)
+predicted_eve<- predict(best_model_stripe,nuclei,type = "response")
+mccr(nuclei$new_ninestripe9,as.numeric(predicted_eve > 0.5))
+predict_eve_nuclei = predicted_eve > 0.5
+
+ON_nuclei = c()
+for(i in 1:6078){
+  if(predict_eve_nuclei[i] == TRUE){
+    ON_nuclei <- append(ON_nuclei,i)
+  }
+}
+
+plot(nuclei$x__3,nuclei$z__3,col = "grey",pch = 20, xlab = "AP",ylab = "DV", main = "Predicted 9-stripe model")
+TRUE_subset = subset(nuclei, id %in% ON_nuclei)
+points(TRUE_subset$x__3,TRUE_subset$z__3,col = "white", pch = 20)
+```
+
+Visualization that contains TP, TN, FP and FN nuclei. Please change the regulators and parameters for different stripes. The example shows trieve 3. 
+```{r}
+best_model_stripe <- glm(exp_new_eve3 ~  tll__3 + KrP__3 + hbP__3 + hbP2, data = new_train_stripe3, family = binomial)
+predicted_eve<- predict(best_model_stripe,nuclei,type = "response")
+mccr(nuclei$exp_new_eve3,as.numeric(predicted_eve > 0.5))
+predict_eve_nuclei = predicted_eve > 0.5
+predict_stripe = c()
+out_stripe = c()
+
+for(i in 1:6078){
+  if(predict_eve_nuclei[i] == TRUE & i %in% new_stripe3_nuclei){
+    predict_stripe <- append(predict_stripe,i)
+  }else if(predict_eve_nuclei[i] == TRUE & !(i %in% new_stripe3_nuclei)){
+    out_stripe <- append(out_stripe,i)
+  }
+}
+false_negative = c()
+
+for(i in 1:6078){
+  if(predict_eve_nuclei[i] == FALSE & i %in% new_stripe3_nuclei){
+    false_negative <- append(false_negative,i)
+  }
+}
+
+intersect_nuclei = intersect(new_stripe3_nuclei,predict_stripe)
+intersect_subset = subset(nuclei, id %in% intersect_nuclei)
+out_subset = subset(nuclei, id %in% out_stripe)
+false_negative_subset = subset(nuclei, id %in% false_negative)
+plot(nuclei$x__3,nuclei$z__3,col = "grey",pch = 20, xlab = "AP",ylab = "DV", main = "trieve 3")
+points(intersect_subset$x__3,intersect_subset$z__3,col = "white", pch = 20)
+points(out_subset$x__3,out_subset$z__3,col = "pink", pch = 20)
+points(false_negative_subset$x__3,false_negative_subset$z__3,col = "light blue", pch = 20)
+```
+
