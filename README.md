@@ -1,7 +1,7 @@
 # BIOL0019_project
-# Jiayi Wang
-# Email: zczljw4@ucl.ac.uk
-# Supervisor: Prof Nicholas M Luscombe
+## Jiayi Wang
+## Email: zczljw4@ucl.ac.uk
+## Supervisor: Prof Nicholas M Luscombe
 
 ## General information
 This is the code file (in Rmarkdown format) for Jiayi Wang's final year project: Statistical and Computational Modelling of Gene Regulation in the Drosophila melanogaster Blastoderm.
